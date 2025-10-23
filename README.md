@@ -152,3 +152,68 @@ If you find nanochat helpful in your research cite simply as:
 ## License
 
 MIT
+
+
+## 20251023 git 问题记录
+
+
+起初, 我 git clone 了 Karpathy 的 nanochat, 称当时最新版本是 V5, 与此同时我设置了 git remote add upstream https://github.com/karpathy/nanochat.git, 此时有:
+
+```
+Karpathy 的 nanochat: V1 -> V2 -> V3 -> V4 -> V5 [master]
+你的 nanochat: V1 -> V2 -> V3 -> V4 -> V5 [master]
+```
+
+
+后来一段时间内, 我添加了 RoPE 的注释, 得到了 V5-注释版, 而 Karpathy 和他的合作者们修复了一些 bug, 得到 V6, 于是分岔出现了:
+
+```
+                              +--> V6 [Karpathy 的 master]
+                             /
+V1 -> ... -> V5 (共同的祖先)
+                             \
+                              +--> V5-注释版 [你的 master]   
+```
+
+随后我 set-url 到 boris-dotv/nanochat-boris, 告诉 git, 以后把我的更新都推送到这个 repository 里面, 
+
+git fetch upstream 只是把 V6 下载到本地, 存储在一个 upstream/master 的远程跟踪分支里面, 没有对 V5-注释版做任何操作. 此时若运行 git status, 我们会得到一些终端返回信息:
+1. 当前在 master 分支;
+2. 当前分支和 upstream/master 分支有分岔;
+3. 两个分支都基于同一个版本各自前进了一步.
+
+当前目的: 将 V6 和 V5-注释版整合到一起.
+
+* 方法1: Merge
+git merge upstream/master 会创造一个全新的 V7-合并版, 其有两个父提交: V6 和 V5-注释版:
+```
+             +-----> V6 -----+
+            /                 \
+... -> V5 --+                  +--> V7-合并版 [本地 master]
+            \                 /
+             +--> V5-注释版 --+
+```
+此方法真实保留历史, 但是历史线会变得复杂, 充满了各种合并提交.
+
+* 方法2: Rebase
+git rebase upstream/master 会执行如下操作:
+找到 V5, 随后把超前于 V5 的所有提交剪切下来, 放入临时区域, master 分支会退回到 V5, 随后 master 分支移动到 upstream/master 的位置, 即 V6, 随后在 V6 的基础上应用一遍刚刚剪切下来的 V5-注释版, 得到 V6-注释版:
+
+```
+... -> V5 -> V6 [upstream/master] -> V6-注释版 [本地 master]
+```
+此方法改写了历史, V5-注释版会从历史中消失, 倘若有人拉取过 V5-注释版, 那么这是再 rebase 会造成很大的麻烦.
+
+本次提交中, 我先 Fork 了 nanochat, 此时我的 master 分支是: Karpathy 的旧提交 -> 我的注释提交 (因为我是前一天晚上 git clone 的), 而远程的 origin/master 的提交历史是: Karpathy 的旧提交 -> Karpathy 的最新提交, 这就导致这两条历史线不是简单的前后关系, 而是从一个点走向两个不同的未来, 为了防止覆盖远程仓库可能很重要的提交, 所以 Git 选择了拒绝推送.
+
+我下一步决定使用 git pull 来将远程的历史整合到本地, 结果遇到了第二个问题 -- Need to specify how to reconcile divergent branches. 检查到历史分岔的时候, Git 会给出两个选择, 到底是选择 Merge 还是 Rebase 来做合并, 此时我通过 git config --global pull.rebase false 来告诉 Git, 采用 merge 策略, 此时再次运行 git pull origin master, 由于 Git 知道了规则, 会将远程历史和本地历史做合并, 并创建一个新的合并提交. 这时再 git push origin master 就可以正常推送, 并保留了远程的所有内容.
+
+```bash
+git status
+git add .
+git commit -m "modified my README"
+
+git fetch upstream
+git merge upstream/master
+git push origin master
+```
