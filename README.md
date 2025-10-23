@@ -161,7 +161,7 @@ MIT
 
 ```
 Karpathy 的 nanochat: V1 -> V2 -> V3 -> V4 -> V5 [master]
-你的 nanochat: V1 -> V2 -> V3 -> V4 -> V5 [master]
+我的本地 nanochat: V1 -> V2 -> V3 -> V4 -> V5 [master]
 ```
 
 
@@ -207,6 +207,9 @@ git rebase upstream/master 会执行如下操作:
 本次提交中, 我先 Fork 了 nanochat, 此时我的 master 分支是: Karpathy 的旧提交 -> 我的注释提交 (因为我是前一天晚上 git clone 的), 而远程的 origin/master 的提交历史是: Karpathy 的旧提交 -> Karpathy 的最新提交, 这就导致这两条历史线不是简单的前后关系, 而是从一个点走向两个不同的未来, 为了防止覆盖远程仓库可能很重要的提交, 所以 Git 选择了拒绝推送.
 
 我下一步决定使用 git pull 来将远程的历史整合到本地, 结果遇到了第二个问题 -- Need to specify how to reconcile divergent branches. 检查到历史分岔的时候, Git 会给出两个选择, 到底是选择 Merge 还是 Rebase 来做合并, 此时我通过 git config --global pull.rebase false 来告诉 Git, 采用 merge 策略, 此时再次运行 git pull origin master, 由于 Git 知道了规则, 会将远程历史和本地历史做合并, 并创建一个新的合并提交. 这时再 git push origin master 就可以正常推送, 并保留了远程的所有内容.
+
+
+提交流程示例:
 
 ```bash
 git status
