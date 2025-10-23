@@ -157,7 +157,11 @@ MIT
 ## 20251023 git 问题记录
 
 
-起初, 我 git clone 了 Karpathy 的 nanochat, 称当时最新版本是 V5, 与此同时我设置了 git remote add upstream https://github.com/karpathy/nanochat.git, 此时有:
+起初, 我 git clone 了 Karpathy 的 nanochat, 称当时最新版本是 V5, 与此同时我设置了:
+```bash
+git remote add upstream https://github.com/karpathy/nanochat.git
+```
+此时有:
 
 ```
 Karpathy 的 nanochat: V1 -> V2 -> V3 -> V4 -> V5 [master]
