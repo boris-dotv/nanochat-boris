@@ -40,8 +40,10 @@ def norm(x):
 
 def apply_rotary_emb(x, cos, sin):
     assert x.ndim == 4  # multihead attention
+    # NOTE(dotv): 将特征维度分成两半
     d = x.shape[3] // 2
     x1, x2 = x[..., :d], x[..., d:] # split up last time into two halves
+    # NOTE(dotv): 将 x 直接分半是一种高效实现, 只是创建了两个指向同一块连续内存的不同部分视图, 几乎没有开销, 而原始的 RoPE 里面是相邻交错的分半, 需要类似 x[..., 0::2] 和 x[..., 1::2] 这样的操作, 涉及对内存的 strided access, 跨步访问, 比访问连续内存要慢一些.
     y1 = x1 * cos + x2 * sin # rotate pairs of dims
     y2 = x1 * (-sin) + x2 * cos
     out = torch.cat([y1, y2], 3) # re-assemble
@@ -184,18 +186,32 @@ class GPT(nn.Module):
 
     # TODO: bump base theta more, e.g. 100K is more common more recently
     def _precompute_rotary_embeddings(self, seq_len, head_dim, base=10000, device=None):
+        # NOTE(dotv): 1. 确定计算设备
         # autodetect the device from model embeddings
         if device is None:
             device = self.transformer.wte.weight.device
         # stride the channels
+
+        # NOTE(dotv): 2. 创建不同维度的旋转角速度
         channel_range = torch.arange(0, head_dim, 2, dtype=torch.float32, device=device)
+        # NOTE(dotv): 如果 head_dim 是 64, 那么 channel_range 就是 [0, 2, 4, ..., 62]
+        # NOTE(dotv): inv_freq 的维度是 32.
         inv_freq = 1.0 / (base ** (channel_range / head_dim))
+
+        # NOTE(dotv): 创建所有可能的位置, t 是 [0, 1, 2, ..., seq_len-1]
         # stride the time steps
         t = torch.arange(seq_len, dtype=torch.float32, device=device)
+
+        # NOTE(dotv): 4. 计算每个 (位置, 维度) 对应的旋转角度
+        # NOTE(dotv): freqs 的形状是 (seq_len, head_dim / 2)
         # calculate the rotation frequencies at each (time, channel) pair
         freqs = torch.outer(t, inv_freq)
+
+        # NOTE(dotv): 5. 计算旋转所需的 cos 和 sin 值
         cos, sin = freqs.cos(), freqs.sin()
         cos, sin = cos.bfloat16(), sin.bfloat16() # keep them in bfloat16
+
+        # NOTE(dotv): 6. 增加“批次”和“头”维度, 形状从 (seq_len, head_dim/2) -> (1, seq_len, 1, head_dim/2)
         cos, sin = cos[None, :, None, :], sin[None, :, None, :] # add batch and head dims for later broadcasting
         return cos, sin
 
