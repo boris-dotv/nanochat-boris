@@ -215,5 +215,6 @@ git commit -m "modified my README"
 
 git fetch upstream
 git merge upstream/master
+# Already up to date. 指的是: 你当前的 master 分支, 在其历史中, 已经完整地包含了 upstream/master 分支的所有提交.
 git push origin master
 ```
