@@ -285,7 +285,7 @@ git rebase upstream/master 会执行如下操作:
 ```bash
 git status
 git add .
-git commit -m "modified my README"
+git commit -m "updated by merge"
 
 git fetch upstream
 git merge upstream/master
