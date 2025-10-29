@@ -292,3 +292,10 @@ git merge upstream/master
 # Already up to date. 指的是: 你当前的 master 分支, 在其历史中, 已经完整地包含了 upstream/master 分支的所有提交.
 git push origin master
 ```
+
+## 20251029 前期准备记录
+
+1. 数据集地址: https://huggingface.co/datasets/karpathy/fineweb-edu-100b-shuffle
+2. 根据 Chinchilla 的 Scaling Laws, 我们只需要 240 个左右的分片即可训练出一个被充分训练的 d20 模型.
+3. python -m nanochat.dataset -n 1823 会直接跳过已下载的数据下载剩下的所有数据, Karpathy 的数据集一共有 0-1822 个数据分片, 先只取前 240 个进行训练.
+4. 

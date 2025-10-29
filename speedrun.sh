@@ -10,10 +10,12 @@
 # 3) Example launch with wandb logging, but see below for setting up wandb first:
 # WANDB_RUN=speedrun screen -L -Logfile speedrun.log -S speedrun bash speedrun.sh
 
-# Default intermediate artifacts directory is in ~/.cache/nanochat
+# Default intermediate artifacts directory is in ~/cache
 export OMP_NUM_THREADS=1
-export NANOCHAT_BASE_DIR="$HOME/.cache/nanochat"
+export NANOCHAT_BASE_DIR="/root/autodl-tmp/nanochat/cache" # 您已经修改的，控制项目数据
+export UV_CACHE_DIR="$NANOCHAT_BASE_DIR/uv_cache"     # <-- 新增这一行，控制uv包缓存
 mkdir -p $NANOCHAT_BASE_DIR
+mkdir -p "$NANOCHAT_BASE_DIR/uv_cache"                 # <-- 新增这一行，确保目录存在
 
 # -----------------------------------------------------------------------------
 # Python venv setup with uv
