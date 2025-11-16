@@ -89,6 +89,9 @@ python -m scripts.tok_eval
 echo "Waiting for dataset download to complete..."
 wait $DATASET_DOWNLOAD_PID
 
+# Number of processes/GPUs to use
+NPROC_PER_NODE=8
+
 # pretrain the d20 model
 torchrun --standalone --nproc_per_node=2 -m scripts.base_train -- --depth=20 --run=$WANDB_RUN --device_batch_size=4
 # evaluate the model on a larger chunk of train/val data and draw some samples
